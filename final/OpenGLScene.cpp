@@ -160,19 +160,17 @@ void OpenGLSceneRenderer::init()
 
         TreeBuffer* tree = new TreeBuffer();
 
+
+        //Tri skupiny objektu dle chovani:
+        // m_StojiObjects --> je na miste
+        // m_SaTociObjects --> rotuje podle osy
+        // m_objects --> obiha kolem
+
         ShaderProgram* program = new ShaderProgram();
         m_StojiObjects.push_back(new CubeObject(program, cube,
                                            Position{-0.5, 0.0, 0.5},
                                            Rotation{30.0, {0.0, 1.0, 0.0}}
                                         ));
-        // m_objects.push_back(new CubeObject(program, cube,
-        //                                    Position{ 1.0, 0.0, 1.0},
-        //                                    Rotation{ 45.0, {1.0, 0.0, 0.0}}
-        //                                    ));s
-        // m_objects.push_back(new SpaceshipObject(program, spaceship,
-        //                                    Position{ 0.0, 0.0, 0.0},
-        //                                    Rotation{ 0.0, {0.0, 1.0, 0.0}}
-        //                                    ));
 
         m_objects.push_back(new TreeObject(program, tree,
                                            Position{0.0, 0.0, 2.5},
@@ -239,16 +237,18 @@ void OpenGLSceneRenderer::paint()
             objPosition.x += m_Side;
         }
 
+        //Jiny zpusob jak zjistit, jestli v seznamu objektu se jedna o TreeObject
         if(dynamic_cast<TreeObject*>(object) != nullptr)
         {
+            // Objekt krouzi kolem bodu x0, y0, y1 s radiusem 1.5
             float angle = (objRotation.angle + m_t) * M_PI / 180.0;
             //              centr  radius
             float centerX = 0.0 + 1.5 * cos(angle);
             float centerZ = 1.0 + 1.5 * sin(angle);
 
-            // Před rotací přeložte objekt na vypočtenou polohu bodu
+            // vypočtena poloha bodu
             tmpModelViewMatrix.translate(centerX, objPosition.y, centerZ);
-            qDebug() << "Uhel: " << m_t;
+            qDebug() << "Uhel: " << m_t; // Vypisuje na vystup v QT hodnotu Uhlu good pro testovani
             tmpModelViewMatrix.rotate(objRotation.angle, objRotation.axis[0], objRotation.axis[1], objRotation.axis[2]);
         }
         else
@@ -268,28 +268,14 @@ void OpenGLSceneRenderer::paint()
         QMatrix4x4 tmpModelViewMatrix = modelViewMatrix;
 
         // Pokud je objekt SpaceShip, aktualizujte jeho pozici na základě hodnoty m_Side
-        if (dynamic_cast<SpaceshipObject*>(object) != nullptr) {
-            objPosition.x += m_Side;
-        }
+        // if (dynamic_cast<SpaceshipObject*>(object) != nullptr) {
+        //     objPosition.x += m_Side;
+        // }
 
-        if(dynamic_cast<TreeObject*>(object) != nullptr)
-        {
-            // float angle = (objRotation.angle + m_t) * M_PI / 180.0;
+        tmpModelViewMatrix.translate(objPosition.x, objPosition.y, objPosition.z);
+        //Objekt rotuje pod uhlem m_t
+        tmpModelViewMatrix.rotate(objRotation.angle+m_t, objRotation.axis[0], objRotation.axis[1], objRotation.axis[2]);
 
-            // float centerX = 0.0 + 1.0 * cos(angle);
-            // float centerZ = 0.0 + 1.0 * sin(angle);
-
-            // // Před rotací přeložte objekt na vypočtenou polohu bodu
-            // tmpModelViewMatrix.translate(centerX, objPosition.y, centerZ);
-            qDebug() << "Uhel: " << m_t;
-            tmpModelViewMatrix.translate(objPosition.x, objPosition.y, objPosition.z);
-            tmpModelViewMatrix.rotate(objRotation.angle+m_t, objRotation.axis[0], objRotation.axis[1], objRotation.axis[2]);
-        }
-        else
-        {
-            tmpModelViewMatrix.rotate(objRotation.angle, objRotation.axis[0], objRotation.axis[1], objRotation.axis[2]);
-            tmpModelViewMatrix.translate(objPosition.x, objPosition.y, objPosition.z);
-        }
         tmpModelViewMatrix.scale(0.5, 0.8, 0.5);
         object->render(projectionMatrix*tmpModelViewMatrix);
     }

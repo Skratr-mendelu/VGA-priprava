@@ -19,6 +19,8 @@ void TreeBuffer::init(){
                         Vertex{ { 0.0, 0.0, -1.0}, { 0.8, 0.8, 0.0}}, //9
                          };
 
+//https://www.geogebra.org/calculator <--- good pro predstavu kde maji byt body a jak jdou za sebou
+
     GLubyte indices[] = {
         0,1,3,4,1,2,5,7,9,5,6,8
     };
